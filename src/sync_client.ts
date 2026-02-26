@@ -308,10 +308,22 @@ export function applyParagraphEdit(
   newText: string,
   existingWords: SyncWordInput[],
   existingSegments: SyncSegmentInput[],
-  userId?: string
 ): ParagraphEditResult {
-  const bestWords = selectBestVersions(existingWords);
-  const bestSegments = selectBestVersions(existingSegments);
+  const pStart = timestampToSeconds(paragraphStart);
+  const pEnd = timestampToSeconds(paragraphEnd);
+
+  const wordsInRange = existingWords.filter((w) => {
+    return timestampToSeconds(w.timestamp_start) >= pStart
+        && timestampToSeconds(w.timestamp_end) <= pEnd;
+  });
+
+  const segmentsInRange = existingSegments.filter((s) => {
+    return timestampToSeconds(s.timestamp_start) < pEnd
+        && timestampToSeconds(s.timestamp_end) > pStart;
+  });
+
+  const bestWords = selectBestVersions(wordsInRange);
+  const bestSegments = selectBestVersions(segmentsInRange);
   const newWordTexts = newText.split(" ").filter((w) => w.length > 0);
 
   const ops = diffWords(bestWords, newWordTexts);
