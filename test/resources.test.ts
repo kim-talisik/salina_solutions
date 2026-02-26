@@ -24,6 +24,8 @@ describe('validateResources', () => {
     // Create the required files/folders
     fs.writeFileSync(path.join(tempDir, workerName), 'test content');
     fs.mkdirSync(path.join(tempDir, '_internal'));
+    fs.mkdirSync(path.join(tempDir, 'whisper'));
+    fs.mkdirSync(path.join(tempDir, 'face_recognition'));
 
     const result = validateResources(tempDir);
 
@@ -32,8 +34,10 @@ describe('validateResources', () => {
   });
 
   it('should return exists: false when worker executable is missing', () => {
-    // Only create the internal folder
+    // Create all except worker
     fs.mkdirSync(path.join(tempDir, '_internal'));
+    fs.mkdirSync(path.join(tempDir, 'whisper'));
+    fs.mkdirSync(path.join(tempDir, 'face_recognition'));
 
     const result = validateResources(tempDir);
     const isWindows = process.platform === 'win32';
@@ -47,8 +51,9 @@ describe('validateResources', () => {
     const isWindows = process.platform === 'win32';
     const workerName = isWindows ? 'worker.exe' : 'worker';
     
-    // Only create the worker executable
     fs.writeFileSync(path.join(tempDir, workerName), 'test content');
+    fs.mkdirSync(path.join(tempDir, 'whisper'));
+    fs.mkdirSync(path.join(tempDir, 'face_recognition'));
 
     const result = validateResources(tempDir);
 
@@ -56,7 +61,7 @@ describe('validateResources', () => {
     expect(result.missing).toContain('_internal folder');
   });
 
-  it('should return exists: false when both resources are missing', () => {
+  it('should return exists: false when all resources are missing', () => {
     const result = validateResources(tempDir);
     const isWindows = process.platform === 'win32';
     const expectedWorker = isWindows ? 'worker.exe' : 'worker';
@@ -64,16 +69,19 @@ describe('validateResources', () => {
     expect(result.exists).toBe(false);
     expect(result.missing).toContain(expectedWorker);
     expect(result.missing).toContain('_internal folder');
-    expect(result.missing.length).toBe(2);
+    expect(result.missing).toContain('whisper');
+    expect(result.missing).toContain('face_recognition');
+    expect(result.missing.length).toBe(4);
   });
 
   it('should use correct worker name on Windows', () => {
-    // This test verifies the platform-specific logic
     const isWindows = process.platform === 'win32';
     const workerName = isWindows ? 'worker.exe' : 'worker';
     
     fs.writeFileSync(path.join(tempDir, workerName), 'test content');
     fs.mkdirSync(path.join(tempDir, '_internal'));
+    fs.mkdirSync(path.join(tempDir, 'whisper'));
+    fs.mkdirSync(path.join(tempDir, 'face_recognition'));
 
     const result = validateResources(tempDir);
 
